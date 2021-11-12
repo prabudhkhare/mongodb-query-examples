@@ -4,7 +4,7 @@
 {
 collectionName:"MW_REPORT_LINKBASE_FINAL",
 aggregate:  [
-{$match:{VIEW:"LINKBASE" , REMARK:{$ne:"DOUBLE-LINK"} ,   $expr:{$not:{$and:[{$eq:["$VENDOR","ERICSSON"]},{$eq:["$CNT",3]}]}}  , WEEK:{$in:[ $P{week1},$P{week2},$P{week3},$P{week4}  ]} }},
+{$match:{VIEW:"LINKBASE" , REMARK:{$ne:"DOUBLE-LINK"} ,   $expr:{$not:{$and:[{$eq:["$VENDOR",""]},{$eq:["$CNT",3]}]}}  , WEEK:{$in:[ $P{week1},$P{week2},$P{week3},$P{week4}  ]} }},
 {$addFields:{key:{$concat:["$WEEK","$VENDOR","$LINK_ABBA"]}}},
 {$lookup:{from:"MW_LINK_BASE_PORTBASE_NEBASE_VIEW" , localField:"key" ,foreignField:"key" ,as :"arr" }},
 {$addFields:{THROUGHPUT:"$arr.tput"  ,  BANDWIDTH:"$arr.bw" }},
