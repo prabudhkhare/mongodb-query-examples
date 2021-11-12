@@ -95,7 +95,7 @@ db.DOMESTIC_IP_MPLS_LINK_UTILIZATION.aggregate([{$match:{VIEW:{$in:["SAM12_PH_PT
             }
   
 }},
-{$match:{$expr:{$or:[{$and:[{$eq:["$VIEW","SAM12_PH_PT_WK"]},{$not:{$in:["$ip",["114.0.250.77","114.0.172.254","114.0.172.253","114.0.247.179","114.1.32.64","114.0.172.254","10.137.135.13","10.137.135.6"]]}}]},{$and:[{$eq:["$VIEW","SAM12_LG_PT_WK"]},{$not:{$in:["$ip",["114.0.250.77","114.0.172.254","114.0.172.253","114.0.247.179","114.1.32.64","114.0.172.254","10.137.135.13","10.137.135.6"]]}}]},{$and:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$not:{$in:["$host_name",["JKT-DRT-PE1-SR7","JKT-ELK1-EDGE-B-R5","JKT-ANC-CN3-SR12e","JKT-JBN-AN1-IXRR6","BTM-SKP-CORE","JKT-KRN-AN1-SRA8","jkt-anc-igw-nix-asr9006"]]}}]}]} ,     host_name:{$ne:"15SMN032-JANTI-2"} , ip:{$ne:"114.1.32.64"}
+{$match:{$expr:{$or:[{$and:[{$eq:["$VIEW","ABCd"]},{$not:{$in:["$ip",["11.11.111.11"]]}}]},{$and:[{$eq:["$VIEW","ABCd"]},{$not:{$in:["$ip",[11.11.111.11]]}}]},{$and:[{$eq:["$VIEW","ABCd"]},{$not:{$in:["$host_name",["ABCd"]]}}]}]} ,     host_name:{$ne:"ABCd"} , ip:{$ne:"11.11.111.11"}
 }},
 {$addFields:{intface:{$cond:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$concat:[{$cond:[{$in:["$host_name",[NaN,null]]},"","$host_name"]},":",{$substrCP:[{$cond:[{$in:["$intface",[NaN,null]]},"","$intface"]},{$add:[{$strLenCP:{$cond:[{$in:["$host_name",[NaN,null]]},"","$host_name"]}},1]},{$strLenCP:{$cond:[{$in:["$intface",[NaN,null]]},"","$intface"]}}]}]},
 "$intface"]},
@@ -150,7 +150,7 @@ db.DOMESTIC_IP_MPLS_LINK_UTILIZATION.aggregate([{$match:{VIEW:{$in:["SAM12_PH_PT
    ,
 {$addFields:{details:{$arrayElemAt:["$details",0]}}},
 {$addFields:{details:null,REGION:"$details.AREA",AREA:"$details.CITY/DATI2(NDB_RAN)",AGGR:"$details.AGGR",ROUTER_TYPE:"$details.RFP_CATEGORY",VENDOR:"$details.VENDOR"}},
-{$match:{   intface:{$in:["jkt-anc-nix-asr9006:BVI475","JKT-LNA-CN1-SR7:2/1/21","jkt-anc-nix-asr9006:BVI245","JKT-DCI-AN2-SRA8:1/2/1","jkt-kpi-dia-asr9912:Bundle-Ether320"]}    }},
+{$match:{   intface:{$in:["ABCd"]}    }},
 {$sort:{util_avg:-1,util1:-1,util2:-1,util3:-1}},
 {$out:"DOMESTIC_IP_MPLS_LINK_UTILIZATION_EXCLUSION"}
 
