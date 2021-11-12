@@ -1,0 +1,71 @@
+
+
+
+{
+collectionName:"MW_REPORT_LINKBASE_FINAL",
+aggregate:  [
+{$match:{VIEW:"LINKBASE" , REMARK:{$ne:"DOUBLE-LINK"} ,   $expr:{$not:{$and:[{$eq:["$VENDOR","ERICSSON"]},{$eq:["$CNT",3]}]}}  , WEEK:{$in:[ $P{week1},$P{week2},$P{week3},$P{week4}  ]} }},
+{$addFields:{key:{$concat:["$WEEK","$VENDOR","$LINK_ABBA"]}}},
+{$lookup:{from:"MW_LINK_BASE_PORTBASE_NEBASE_VIEW" , localField:"key" ,foreignField:"key" ,as :"arr" }},
+{$addFields:{THROUGHPUT:"$arr.tput"  ,  BANDWIDTH:"$arr.bw" }},
+{$addFields:{THROUGHPUT:{$max:"$THROUGHPUT"}   , BANDWIDTH:{$max:"$BANDWIDTH"}    }}
+,
+{$addFields:{
+    BANDWIDTH:{$cond:[{$or:[{$lt:["$BANDWIDTH",0]},{$in:["$BANDWIDTH",[{$toDouble:0},null,NaN,"-1234.0"]]}]},null,"$BANDWIDTH" ]  },
+    THROUGHPUT:{$cond:[{$or:[{$lt:["$THROUGHPUT",0]},{$in:["$THROUGHPUT",[{$toDouble:0},null,NaN,"-1234.0"]]}]},null, "$THROUGHPUT" ]}
+}},
+{$group :{_id:{CLUSTER:"$CLUSTER",REGION:"$REGION",RPT_AREA:"$RPT_AREA",SITE_ID_A:"$SITE_ID_A",SITE_ID_B:"$SITE_ID_B",LINK_ID:"$LINK_ID" , LINK_ID_OPP:"$LINK_ID_OPP", WEEK:"$WEEK"} ,BANDWIDTH:{$max:"$BANDWIDTH"} , THROUGHPUT:{$max:"$THROUGHPUT"} , RADIO_CONFIG:{$first:"$RADIO_CONFIG"} , MODULATION:{$first:"$MODULATION"}  ,TPUT:{$first:"$TPUT"} }},
+
+{$project:{_id:0,CLUSTER:"$_id.CLUSTER",REGION:"$_id.REGION",RPT_AREA:"$_id.RPT_AREA",SITE_ID_A:"$_id.SITE_ID_A",SITE_ID_B:"$_id.SITE_ID_B",LINK_ID:"$_id.LINK_ID",LINK_ID_OPP:"$_id.LINK_ID_OPP",WEEK:"$_id.WEEK",MODULATION:1,TPUT:1,BANDWIDTH:1,THROUGHPUT:1,RADIO_CONFIG:1}},
+
+{$addFields:{util:{$cond:[{$or:[{$lt:["$THROUGHPUT",0]},{$in:["$THROUGHPUT",[{$toDouble:0},null,NaN,"-1234.0"]]},{$lt:["$BANDWIDTH",0]},{$in:["$BANDWIDTH",[{$toDouble:0},null,NaN,"-1234.0"]]}]},null, {$multiply:[{$divide:["$THROUGHPUT","$BANDWIDTH"]},100]} ]  }}},
+
+{$addFields:{util:{$cond:[{$gt:['$util',{$toDouble:100}]},100,'$util']}}},
+
+
+{$project:{"BANDWIDTH_(MBPS)":"$BANDWIDTH",AREA:"$RPT_AREA",CLUSTER:"$CLUSTER",LINK_ID:"$LINK_ID","LINK_ID'":"$LINK_ID_OPP",REGION:"$REGION",SITE_ID_A:"$SITE_ID_A",SITE_ID_B:"$SITE_ID_B",WEEK:"$WEEK","THROUGHPUT_(MBPS)":"$THROUGHPUT","UTILIZATION_(%)":"$util"}},
+{$group:{_id:null,arr:{$push:"$$ROOT"} , weeks:{$first:"2021-18"} }},
+{$lookup:{from:"MW_LINK_BASE_PIVOT4_WEEK" , localField:"weeks" ,foreignField:"WEEKS" ,as :"arr1" }},
+{$project:{arr:{$setUnion:["$arr","$arr1"]}}},
+{$unwind:"$arr"},
+{$replaceRoot:{newRoot:"$arr"}},
+{$group:{_id:{CLUSTER:"$CLUSTER" ,REGION:"$REGION" ,RPT_AREA:"$AREA",SITE_ID_A:"$SITE_ID_A" ,SITE_ID_B:"$SITE_ID_B",LINK_ID:"$LINK_ID",LINK_ID_OPP:"$LINK_ID'" } , arr:{$push:{week:"$WEEK",util:"$UTILIZATION_(%)"}} , util :{$push:"$UTILIZATION_(%)"}  }},
+
+
+
+{$project :{_id:0 , CLUSTER:"$_id.CLUSTER", REGION:"$_id.REGION", RPT_AREA:"$_id.RPT_AREA", SITE_ID_A:"$_id.SITE_ID_A", SITE_ID_B:"$_id.SITE_ID_B", LINK_ID:"$_id.LINK_ID", LINK_ID_OPP:"$_id.LINK_ID_OPP" ,
+    week1:{$arrayElemAt:[{$filter: {
+               input: "$arr",
+               as: "item",
+               cond: { $eq: [ "$$item.week", $P{week1} ] }
+            }},0]},
+    week2:{$arrayElemAt:[{$filter: {
+               input: "$arr",
+               as: "item",
+               cond: { $eq: [ "$$item.week", $P{week2} ] }
+            }},0]},            
+    week3:{$arrayElemAt:[{$filter: {
+               input: "$arr",
+               as: "item",
+               cond: { $eq: [ "$$item.week", $P{week3} ] }
+            }},0]},
+    week4:{$arrayElemAt:[{$filter: {
+               input: "$arr",
+               as: "item",
+               cond: { $eq: [ "$$item.week", $P{week4} ] }
+            }},0]},
+    max:{$max:"$util"}        
+    
+ }},
+ {$addFields:{week1:{$ifNull:["$week1.util",null]},week2:{$ifNull:["$week2.util",null]},week3:{$ifNull:["$week3.util",null]},week4:{$ifNull:["$week4.util",null]}  , 
+LINK_ID:{$cond:[{$eq:["$LINK_ID","18NIK038-18NIK025"]},"18NIK025-18NIK038","$LINK_ID"]},
+LINK_ID_OPP:{$cond:[{$eq:["$LINK_ID","18NIK038-18NIK025"]},"18NIK038-18NIK025","$LINK_ID_OPP"]},
+SITE_ID_A:{$cond:[{$eq:["$LINK_ID","18NIK038-18NIK025"]},"18NIK025","$SITE_ID_A"]},
+SITE_ID_B:{$cond:[{$eq:["$LINK_ID","18NIK038-18NIK025"]},"18NIK038","$SITE_ID_B"]}
+  }},
+
+{$addFields:{  week1:{$cond:[{$eq:[ "$week1",NaN ]}, null , "$week1" ]} , week2:{$cond:[{$eq:[ "$week2",NaN ]}, null , "$week2" ]} , week3:{$cond:[{$eq:[ "$week3",NaN ]}, null , "$week3" ]} , week4:{$cond:[{$eq:[ "$week4",NaN ]}, null , "$week4" ]}   ,   max :{$cond:[{$eq:[ "$max",NaN ]}, null , "$max" ]} }}
+ 
+]
+}
+

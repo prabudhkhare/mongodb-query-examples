@@ -1,0 +1,160 @@
+
+
+db.DOMESTIC_IP_MPLS_LINK_UTILIZATION.aggregate([{$match:{VIEW:{$in:["SAM12_PH_PT_WK","SAM12_LG_PT_WK","SNMP_PT_CH_WK_TR_BW"]},
+ NE_STATE:{$ne:"Disabled"}  }},
+    
+    {$project:{ VIEW:1,WEEK:"$WEEK",LOOKUP_VAR1:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:{$concat:["$WEEK","_",{$toString:{$cond:[{$in:["$IPDEVICE_ID",[NaN,null]]},"","$IPDEVICE_ID"]}},".0"]}}
+        ],default:""}},LOOKUP_VAR:{$concat:["REF_ROUTER_",{$cond:[{$in:["$LOOKUP_VAR",[NaN,null]]},"","$LOOKUP_VAR"]}]}, host_name:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$SITENAME"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$SITENAME"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:"$SYSNAME"}
+        ],default:""}} ,
+        intface:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$SHORT_NAME"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$SHORT_NAME"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:"$NE_NAME_IF"}
+        ],default:""}},
+        ip:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$SITEID"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$SITEID"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:"$IP"}
+        ],default:""}},
+        bw:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$BANDWIDTH"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$BANDWIDTH"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:{$cond:[{$in:["$DAY7",[NaN,null,""]]},"",{$concat:[{$toString:"$DAY7"},".00 Gbps"]}]}}
+        ],default:""}},
+        mode:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$MODE"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$MODE"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:""}
+        ],default:""}},
+        NE_STATE:"$NE_STATE",
+        DESCRIPTION:{$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},then:"$DESCRIPTION"},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},then:"$DESCRIPTION"},
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},then:"$IFALIAS"}
+        ],default:""}},
+        util:
+        {$switch:{branches:[
+        {case:{$eq:["$VIEW","SAM12_PH_PT_WK"]},
+         then:[
+             {$cond:[{$eq:[{$type:"$DAY1"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY1"," "]},0]}},100]},{$cond:[{$eq:["$DAY1",NaN]},null,{$divide:["$DAY1",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY2"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY2"," "]},0]}},100]},{$cond:[{$eq:["$DAY2",NaN]},null,{$divide:["$DAY2",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY3"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY3"," "]},0]}},100]},{$cond:[{$eq:["$DAY3",NaN]},null,{$divide:["$DAY3",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY4"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY4"," "]},0]}},100]},{$cond:[{$eq:["$DAY4",NaN]},null,{$divide:["$DAY4",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY5"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY5"," "]},0]}},100]},{$cond:[{$eq:["$DAY5",NaN]},null,{$divide:["$DAY5",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY6"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY6"," "]},0]}},100]},{$cond:[{$eq:["$DAY6",NaN]},null,{$divide:["$DAY6",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY7"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY7"," "]},0]}},100]},{$cond:[{$eq:["$DAY7",NaN]},null,{$divide:["$DAY7",100]}]}]}
+            
+             
+             ]},
+        {case:{$eq:["$VIEW","SAM12_LG_PT_WK"]},
+         then:[
+             {$cond:[{$eq:[{$type:"$DAY1"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY1"," "]},0]}},100]},{$cond:[{$eq:["$DAY1",NaN]},null,{$divide:["$DAY1",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY2"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY2"," "]},0]}},100]},{$cond:[{$eq:["$DAY2",NaN]},null,{$divide:["$DAY2",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY3"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY3"," "]},0]}},100]},{$cond:[{$eq:["$DAY3",NaN]},null,{$divide:["$DAY3",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY4"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY4"," "]},0]}},100]},{$cond:[{$eq:["$DAY4",NaN]},null,{$divide:["$DAY4",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY5"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY5"," "]},0]}},100]},{$cond:[{$eq:["$DAY5",NaN]},null,{$divide:["$DAY5",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY6"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY6"," "]},0]}},100]},{$cond:[{$eq:["$DAY6",NaN]},null,{$divide:["$DAY6",100]}]}]},
+             {$cond:[{$eq:[{$type:"$DAY7"},"string"]},{$divide:[{$toDouble:{$arrayElemAt:[{$split:["$DAY7"," "]},0]}},100]},{$cond:[{$eq:["$DAY7",NaN]},null,{$divide:["$DAY7",100]}]}]}
+             
+             
+             ]},
+     
+        {case:{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},
+         then:[
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY1",NaN]},null,"$TR_DAY1"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY2",NaN]},null,"$TR_DAY2"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY3",NaN]},null,"$TR_DAY3"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY4",NaN]},null,"$TR_DAY4"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY5",NaN]},null,"$TR_DAY5"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY6",NaN]},null,"$TR_DAY6"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]},
+              {$cond:[{$in:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},[0,NaN,null]]},null,{$divide:[{$cond:[{$eq:["$TR_DAY7",NaN]},null,"$TR_DAY7"]} ,{$multiply:[{$max:["$DAY1","$DAY2","$DAY3","$DAY4","$DAY5","$DAY6","$DAY7"]},1000000000]}]}]}
+            
+             ]}
+        ],default:null}},
+        
+   }},
+   {$lookup:{from:"DOMESTIC_IP_MPLS_LINK_UTILIZATION" , localField:"LOOKUP_VAR1" , foreignField:"LOOKUP_VAR" , as:"details" }}
+   ,
+{$addFields:{details:{$arrayElemAt:["$details",0]}}},
+{$addFields:{details:null,
+    ip:{$cond:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},"$details.IP_ADDR","$ip"]},
+    host_name:{$cond:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$cond:[{$and:[{ $regexMatch: { input:{$cond:[{$in:["$details.SYSDESCR",[NaN,null]]},"","$details.SYSDESCR"]}, regex: /^Huawei/i }  },{$ne:["$details.SYSNAME","$details.SHORT_NAME"]}]},"$details.SYSNAME","$details.SHORT_NAME"]},"$host_name"]},
+    util: {$map:{
+                   input: "$util",
+                   as: "util",
+                   in: {$switch:{branches:[
+                        {case:{$and:[{$gte:["$$util",{$toDecimal:1}]},{$lte:["$$util",{$toDecimal:2}]}]},then:1},
+                        {case:{$and:[{$gt:["$$util",{$toDecimal:2}]}]},then:null},
+                        
+                        ],default:"$$util"}}
+                 }
+            }
+  
+}},
+{$match:{$expr:{$or:[{$and:[{$eq:["$VIEW","SAM12_PH_PT_WK"]},{$not:{$in:["$ip",["114.0.250.77","114.0.172.254","114.0.172.253","114.0.247.179","114.1.32.64","114.0.172.254","10.137.135.13","10.137.135.6"]]}}]},{$and:[{$eq:["$VIEW","SAM12_LG_PT_WK"]},{$not:{$in:["$ip",["114.0.250.77","114.0.172.254","114.0.172.253","114.0.247.179","114.1.32.64","114.0.172.254","10.137.135.13","10.137.135.6"]]}}]},{$and:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$not:{$in:["$host_name",["JKT-DRT-PE1-SR7","JKT-ELK1-EDGE-B-R5","JKT-ANC-CN3-SR12e","JKT-JBN-AN1-IXRR6","BTM-SKP-CORE","JKT-KRN-AN1-SRA8","jkt-anc-igw-nix-asr9006"]]}}]}]} ,     host_name:{$ne:"15SMN032-JANTI-2"} , ip:{$ne:"114.1.32.64"}
+}},
+{$addFields:{intface:{$cond:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$concat:[{$cond:[{$in:["$host_name",[NaN,null]]},"","$host_name"]},":",{$substrCP:[{$cond:[{$in:["$intface",[NaN,null]]},"","$intface"]},{$add:[{$strLenCP:{$cond:[{$in:["$host_name",[NaN,null]]},"","$host_name"]}},1]},{$strLenCP:{$cond:[{$in:["$intface",[NaN,null]]},"","$intface"]}}]}]},
+"$intface"]},
+    LOOKUP_VAR:{$cond:[{$eq:["$VIEW","SNMP_PT_CH_WK_TR_BW"]},{$concat:["REF_ROUTER_",{$cond:[{$in:["$host_name",[NaN,null]]},"","$host_name"]},"_","$WEEK"]},"$LOOKUP_VAR"]}
+    
+}},
+
+
+   {$unwind:"$util"},
+   {$sort:{util:-1}},
+   {$group:{_id:{WEEK:"$WEEK",LOOKUP_VAR1:"$LOOKUP_VAR1",LOOKUP_VAR:"$LOOKUP_VAR",host_name:"$host_name",intface:"$intface",ip:"$ip",bw:"$bw",mode:"$mode",NE_STATE:"$NE_STATE",DESCRIPTION:"$DESCRIPTION"} , util: {$push:"$util"}  }},
+   {$addFields:{util:{$slice:["$util",4]}}},
+   {$addFields:{util:{$avg:"$util"}}},
+   {$addFields:{ util_week:{"week":"$_id.WEEK",util:"$util"}}},
+   {$sort:{util:-1}},
+   {$group:{_id:{host_name:"$_id.host_name",LOOKUP_VAR1:"$_id.LOOKUP_VAR1",LOOKUP_VAR:"$_id.LOOKUP_VAR",intface:"$_id.intface",ip:"$_id.ip",bw:"$_id.bw",mode:"$_id.mode",NE_STATE:"$_id.NE_STATE",DESCRIPTION:"$_id.DESCRIPTION"} ,WEEK:{$max:"$_id.WEEK"}, util:{$push:"$util"},util_week:{$push:"$util_week"}
+   }},
+   {$project:{_id:0,WEEK:1,LOOKUP_VAR1:"$_id.LOOKUP_VAR1",LOOKUP_VAR:"$_id.LOOKUP_VAR",host_name:"$_id.host_name",intface:"$_id.intface",ip:"$_id.ip",bw:{$toString:"$_id.bw"},mode:"$_id.mode",NE_STATE:"$_id.NE_STATE",DESCRIPTION:"$_id.DESCRIPTION",util_avg:{$avg:"$util"} , 
+         util1:{
+                $filter: {
+             input: "$util_week",
+             as: "util",
+             cond: {$eq:["$$util.week","2021-17"]}
+          }
+        } ,
+         util2:{
+                $filter: {
+             input: "$util_week",
+             as: "util",
+             cond: {$eq:["$$util.week","2021-18"]}
+          }
+        } ,
+         util3:{
+                $filter: {
+             input: "$util_week",
+             as: "util",
+             cond: {$eq:["$$util.week","2021-19"]}
+          }
+        } ,
+         util4:{
+                $filter: {
+             input: "$util_week",
+             as: "util",
+             cond: {$eq:["$$util.week","2021-20"]}
+          }
+        } 
+
+       
+   }},
+   {$addFields:{util1:{$ifNull:[{$arrayElemAt:["$util1.util",0]},null]},util2:{$ifNull:[{$arrayElemAt:["$util2.util",0]},null]},util3:{$ifNull:[{$arrayElemAt:["$util3.util",0]},null]},util4:{$ifNull:[{$arrayElemAt:["$util4.util",0]},null]}}},
+   {$lookup:{from:"DOMESTIC_IP_MPLS_LINK_UTILIZATION" , localField:"LOOKUP_VAR" , foreignField:"LOOKUP_VAR" , as:"details" }}
+   ,
+{$addFields:{details:{$arrayElemAt:["$details",0]}}},
+{$addFields:{details:null,REGION:"$details.AREA",AREA:"$details.CITY/DATI2(NDB_RAN)",AGGR:"$details.AGGR",ROUTER_TYPE:"$details.RFP_CATEGORY",VENDOR:"$details.VENDOR"}},
+{$match:{   intface:{$in:["jkt-anc-nix-asr9006:BVI475","JKT-LNA-CN1-SR7:2/1/21","jkt-anc-nix-asr9006:BVI245","JKT-DCI-AN2-SRA8:1/2/1","jkt-kpi-dia-asr9912:Bundle-Ether320"]}    }},
+{$sort:{util_avg:-1,util1:-1,util2:-1,util3:-1}},
+{$out:"DOMESTIC_IP_MPLS_LINK_UTILIZATION_EXCLUSION"}
+
+],{allowDiskUse:true})
+
+
+

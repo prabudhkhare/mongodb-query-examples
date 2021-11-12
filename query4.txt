@@ -1,0 +1,193 @@
+
+
+{
+collectionName:"MERGED_COO_DECK_2G__3G_CELL_LEVEL_WEEKLY",
+aggregate: [{
+    $match: {
+        $and: [ {$expr :{$in :["$PERIOD_START_TIME",[$P!{weeks}
+              
+
+
+            ]]}}  ,{VIEW : {$in : ["COO_DECK_2G_CELL_LEVEL_WEEKLY","COO_DECK_3G_CELL_LEVEL_WEEKLY"]}} ,{RPT_REGION:{$exists : true}} , {RPT_REGION :{$ne :NaN}}
+     
+        ]
+    }
+}  
+,
+{$group : { _id:{RPT_REGION:"$RPT_REGION" , PERIOD_START_TIME :"$PERIOD_START_TIME" } , num1_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM1_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM1_COO"   ]}}, num2_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM2_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM2_COO"   ]}}, num3_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM3_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_NUM3_COO"   ]}}, den1_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN1_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN1_COO"   ]}}, den2_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN2_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN2_COO"   ]}}, den3_2g:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN3_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_GSM_CSSR_CS_DEN3_COO"   ]}} 
+    , num1:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_NUM1_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_NUM1_COO"   ]}}, num2:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_NUM2_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_NUM2_COO"   ]}}, den1:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_DEN1_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_DEN1_COO"   ]}}, den2:{$sum :{$cond :[ {$eq :["$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_DEN2_COO",NaN]} , 0 , "$TOP4_BUSYDAYWEEK_AVG_UMTS_CSSR_CS_DEN2_COO"   ]}}
+    , cnt_2g : {$sum : {$cond : [ {$eq:["$VIEW","COO_DECK_2G_CELL_LEVEL_WEEKLY"]},1,0]}} , cnt_3g : {$sum : {$cond : [ {$eq:["$VIEW","COO_DECK_3G_CELL_LEVEL_WEEKLY"]},1,0]}} 
+     }}
+
+,
+{$project :   {  RPT_REGION:"$_id.RPT_REGION"  , PERIOD_START_TIME:"$_id.PERIOD_START_TIME", 
+   prev1_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],0]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]} ,
+   prev2_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],1]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]}, 0 ]} , 
+   prev3_2g: {$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],2]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]} ,   
+      prev4_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],3]} ]} ,{$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]}, 0 ]}  ,   
+              prev5_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],4]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev6_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],5]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]}, 0 ]}  ,   
+              prev7_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],6]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev8_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],7]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev9_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],8]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev10_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],9]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev11_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],10]}]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}   ,   
+              prev12_2g:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],11]}]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1_2g",0] } , 0 , {$divide :["$num1_2g","$den1_2g"]} ] },
+    {$cond : [{$eq :["$den2_2g",0] } , 0 , {$divide :["$num2_2g","$den2_2g"]} ] },
+    {$cond : [{$eq :["$den3_2g",0] } , 0 , {$divide :["$num3_2g","$den3_2g"]} ] }
+    ]} ,2 ]} , 0 ]}  ,
+    
+    
+    
+    
+    
+    
+    prev1:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],0]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]} ,
+   prev2:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],1]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]}, 0 ]} , 
+   prev3: {$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],2]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]} ,   
+      prev4:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],3]} ]} ,{$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]}, 0 ]}  ,   
+              prev5:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],4]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev6:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],5]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]}, 0 ]}  ,   
+              prev7:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],6]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev8:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],7]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev9:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],8]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev10:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],9]} ]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,   
+              prev11:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],10]}]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}   ,   
+              prev12:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],11]}]} , {$round:[ {$multiply:[100,
+    {$cond : [{$eq :["$den1",0] } , 0 , {$divide :["$num1","$den1"]} ] },
+    {$cond : [{$eq :["$den2",0] } , 0 , {$divide :["$num2","$den2"]} ] }
+    ]} ,2 ]} , 0 ]}  ,
+    
+    
+    
+    cnt_2g_1:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],0]} ]} , "$cnt_2g" , 0 ]},
+    cnt_2g_2:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],1]} ]} ,"$cnt_2g" , 0 ]} , 
+   cnt_2g_3: {$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],2]} ]} , "$cnt_2g" , 0 ]} ,   
+      cnt_2g_4:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],3]} ]} ,"$cnt_2g", 0 ]}  ,   
+              cnt_2g_5:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],4]} ]} , "$cnt_2g" , 0 ]}  ,   
+              cnt_2g_6:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],5]} ]} , "$cnt_2g", 0 ]}  ,   
+              cnt_2g_7:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],6]} ]} , "$cnt_2g" , 0 ]}  ,   
+              cnt_2g_8:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],7]} ]} ,"$cnt_2g"  , 0 ]}  ,   
+              cnt_2g_9:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],8]} ]} ,"$cnt_2g" , 0 ]}  ,   
+              cnt_2g_10:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],9]} ]} ,"$cnt_2g" , 0 ]}  ,   
+              cnt_2g_11:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],10]}]} ,"$cnt_2g" , 0 ]}   ,   
+              cnt_2g_12:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],11]}]} ,"$cnt_2g" , 0 ]}  ,
+             
+             
+             
+             cnt_3g_1:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],0]} ]} , "$cnt_3g" , 0 ]},
+    cnt_3g_2:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],1]} ]} ,"$cnt_3g" , 0 ]} , 
+   cnt_3g_3: {$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],2]} ]} , "$cnt_3g" , 0 ]} ,   
+      cnt_3g_4:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],3]} ]} ,"$cnt_3g", 0 ]}  ,   
+              cnt_3g_5:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],4]} ]} , "$cnt_3g" , 0 ]}  ,   
+              cnt_3g_6:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],5]} ]} , "$cnt_3g", 0 ]}  ,   
+              cnt_3g_7:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],6]} ]} , "$cnt_3g" , 0 ]}  ,   
+              cnt_3g_8:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],7]} ]} ,"$cnt_3g"  , 0 ]}  ,   
+              cnt_3g_9:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],8]} ]} ,"$cnt_3g" , 0 ]}  ,   
+              cnt_3g_10:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],9]} ]} ,"$cnt_3g" , 0 ]}  ,   
+              cnt_3g_11:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],10]}]} ,"$cnt_3g" , 0 ]}   ,   
+              cnt_3g_12:{$cond :[{$eq :["$_id.PERIOD_START_TIME" ,{$arrayElemAt: [[$P!{weeks}],11]}]} ,"$cnt_3g" , 0 ]} 
+             
+
+             } }
+,
+
+{$group : { _id : "$RPT_REGION"  ,  prev1_2g: {$sum :"$prev1_2g"}, prev2_2g: {$sum :"$prev2_2g"}, prev3_2g: {$sum :"$prev3_2g"}, prev4_2g: {$sum :"$prev4_2g"}, prev5_2g: {$sum :"$prev5_2g"}, prev6_2g: {$sum :"$prev6_2g"}, prev7_2g: {$sum :"$prev7_2g"}, prev8_2g:  {$sum :"$prev8_2g"}, prev9_2g:  {$sum :"$prev9_2g"}, prev10_2g: {$sum :"$prev10_2g"}, prev11_2g: {$sum :"$prev11_2g"} , prev12_2g: {$sum :"$prev12_2g"}  ,  prev1: {$sum :"$prev1"}, prev2: {$sum :"$prev2"}, prev3: {$sum :"$prev3"}, prev4: {$sum :"$prev4"}, prev5: {$sum :"$prev5"}, prev6: {$sum :"$prev6"}, prev7: {$sum :"$prev7"}, prev8:  {$sum :"$prev8"}, prev9:  {$sum :"$prev9"}, prev10: {$sum :"$prev10"}, prev11: {$sum :"$prev11"} , prev12: {$sum :"$prev12"}  ,  cnt_2g_1 :{$sum :"$cnt_2g_1"},  cnt_2g_2 :{$sum :"$cnt_2g_2"},  cnt_2g_3 :{$sum :"$cnt_2g_3"},  cnt_2g_4 :{$sum :"$cnt_2g_4"},  cnt_2g_5 :{$sum :"$cnt_2g_5"},  cnt_2g_6 :{$sum :"$cnt_2g_6"},  cnt_2g_7 :{$sum :"$cnt_2g_7"},  cnt_2g_8 :{$sum :"$cnt_2g_8"},  cnt_2g_9 :{$sum :"$cnt_2g_9"},  cnt_2g_10 :{$sum :"$cnt_2g_10"},  cnt_2g_11 :{$sum :"$cnt_2g_11"},  cnt_2g_12 :{$sum :"$cnt_2g_12"} , cnt_3g_1 :{$sum :"$cnt_3g_1"},  cnt_3g_2 :{$sum :"$cnt_3g_2"},  cnt_3g_3 :{$sum :"$cnt_3g_3"},  cnt_3g_4 :{$sum :"$cnt_3g_4"},  cnt_3g_5 :{$sum :"$cnt_3g_5"},  cnt_3g_6 :{$sum :"$cnt_3g_6"},  cnt_3g_7 :{$sum :"$cnt_3g_7"},  cnt_3g_8 :{$sum :"$cnt_3g_8"},  cnt_3g_9 :{$sum :"$cnt_3g_9"},  cnt_3g_10 :{$sum :"$cnt_3g_10"},  cnt_3g_11 :{$sum :"$cnt_3g_11"},  cnt_3g_12 :{$sum :"$cnt_3g_12"} }}
+,{$project  :{  _id:"$_id" , prev1 :   {$cond :[{$eq:[{$sum :["$cnt_2g_1","$cnt_3g_1"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev1_2g","$cnt_2g_1"]} ,{$multiply:[ "$prev1","$cnt_3g_1" ]} ]},{$sum :["$cnt_2g_1","$cnt_3g_1"]}]}]}
+                           , prev2 :   {$cond :[{$eq:[{$sum :["$cnt_2g_2","$cnt_3g_2"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev2_2g","$cnt_2g_2"]} ,{$multiply:[ "$prev2","$cnt_3g_2" ]} ]},{$sum :["$cnt_2g_2","$cnt_3g_2"]}]}]}
+                           , prev3 :   {$cond :[{$eq:[{$sum :["$cnt_2g_3","$cnt_3g_3"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev3_2g","$cnt_2g_3"]} ,{$multiply:[ "$prev3","$cnt_3g_3" ]} ]},{$sum :["$cnt_2g_3","$cnt_3g_3"]}]}]}
+                           , prev4 :   {$cond :[{$eq:[{$sum :["$cnt_2g_4","$cnt_3g_4"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev4_2g","$cnt_2g_4"]} ,{$multiply:[ "$prev4","$cnt_3g_4" ]} ]},{$sum :["$cnt_2g_4","$cnt_3g_4"]}]}]}
+                           , prev5 :   {$cond :[{$eq:[{$sum :["$cnt_2g_5","$cnt_3g_5"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev5_2g","$cnt_2g_5"]} ,{$multiply:[ "$prev5","$cnt_3g_5" ]} ]},{$sum :["$cnt_2g_5","$cnt_3g_5"]}]}]}
+                           , prev6 :   {$cond :[{$eq:[{$sum :["$cnt_2g_6","$cnt_3g_6"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev6_2g","$cnt_2g_6"]} ,{$multiply:[ "$prev6","$cnt_3g_6" ]} ]},{$sum :["$cnt_2g_6","$cnt_3g_6"]}]}]}
+                           , prev7 :   {$cond :[{$eq:[{$sum :["$cnt_2g_7","$cnt_3g_7"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev7_2g","$cnt_2g_7"]} ,{$multiply:[ "$prev7","$cnt_3g_7" ]} ]},{$sum :["$cnt_2g_7","$cnt_3g_7"]}]}]}
+                           , prev8 :   {$cond :[{$eq:[{$sum :["$cnt_2g_8","$cnt_3g_8"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev8_2g","$cnt_2g_8"]} ,{$multiply:[ "$prev8","$cnt_3g_8" ]} ]},{$sum :["$cnt_2g_8","$cnt_3g_8"]}]}]}
+                           , prev9 :   {$cond :[{$eq:[{$sum :["$cnt_2g_9","$cnt_3g_9"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev9_2g","$cnt_2g_9"]} ,{$multiply:[ "$prev9","$cnt_3g_9" ]} ]},{$sum :["$cnt_2g_9","$cnt_3g_9"]}]}]}
+                           , prev10 :   {$cond :[{$eq:[{$sum :["$cnt_2g_10","$cnt_3g_10"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev10_2g","$cnt_2g_10"]} ,{$multiply:[ "$prev10","$cnt_3g_10" ]} ]},{$sum :["$cnt_2g_10","$cnt_3g_10"]}]}]}
+                           , prev11 :   {$cond :[{$eq:[{$sum :["$cnt_2g_11","$cnt_3g_11"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev11_2g","$cnt_2g_11"]} ,{$multiply:[ "$prev11","$cnt_3g_11" ]} ]},{$sum :["$cnt_2g_11","$cnt_3g_11"]}]}]}
+                           , prev12 :   {$cond :[{$eq:[{$sum :["$cnt_2g_12","$cnt_3g_12"]},0]},0,{$divide:[  {$sum :[ {$multiply:["$prev12_2g","$cnt_2g_12"]} ,{$multiply:[ "$prev12","$cnt_3g_12" ]} ]},{$sum :["$cnt_2g_12","$cnt_3g_12"]}]}]}
+                             
+                                      }}
+,{$project :{ SHORT_NAME:"$_id" ,  Domain :"" , dummy:"" ,Category : "Performance" , TYPE:"2G+3G" , traffic:"CSSR" , KPI:"$SHORT_NAME" ,unit :"%" , perc:{$cond :[{$eq :[{$cond :[{$eq :["$prev2",NaN]},null,"$prev2"]},0]} , 0 , {$divide :[{$subtract :[{$cond :[{$eq :["$prev1",NaN]},null,"$prev1"]} , {$cond :[{$eq :["$prev2",NaN]},null,"$prev2"]}]},{$cond :[{$eq :["$prev2",NaN]},null,"$prev2"]}]}]} ,growth :{$subtract :[{$cond :[{$eq :["$prev1",NaN]},null,"$prev1"]} , {$cond :[{$eq :["$prev2",NaN]},null,"$prev2"]}]}  , prev1: {$cond :[{$eq :["$prev1",NaN]},null,"$prev1"]}, prev2: {$cond :[{$eq :["$prev2",NaN]},null,"$prev2"]}, prev3: {$cond :[{$eq :["$prev3",NaN]},null,"$prev3"]}, prev4: {$cond :[{$eq :["$prev4",NaN]},null,"$prev4"]}, prev5: {$cond :[{$eq :["$prev5",NaN]},null,"$prev5"]}, prev6: {$cond :[{$eq :["$prev6",NaN]},null,"$prev6"]}, prev7: {$cond :[{$eq :["$prev7",NaN]},null,"$prev7"]}, prev8: {$cond :[{$eq :["$prev8",NaN]},null,"$prev8"]}, prev9: {$cond :[{$eq :["$prev9",NaN]},null,"$prev9"]}, prev10: {$cond :[{$eq :["$prev10",NaN]},null,"$prev10"]}, prev11: {$cond :[{$eq :["$prev11",NaN]},null,"$prev11"]} , prev12: {$cond :[{$eq :["$prev12",NaN]},null,"$prev12"]}  }}
+
+,{$sort:{SHORT_NAME:1}}
+]
+}
+

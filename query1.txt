@@ -1,0 +1,24 @@
+db.CALENDER.aggregate([
+{$match:{$expr:{$eq:[{$dateFromString:{dateString:{$dateToString:{date:new ISODate('2021-05-02'),format:'%Y-%m-%d'}},format:'%Y-%m-%d'}},'$DATE']}}},
+{$lookup: {from: 'CALENDER',localField: 'unique_id',foreignField: 'unique_id',as: 'arr'}},
+{$unwind:'$arr'},
+{$project:{_id:0,DATE:'$arr.DATE',unique_id:'$arr.unique_id'}},
+{$addFields:{DATE_1:{$add:['$DATE',86400000]} }},
+{ '$lookup': {    'from': 'DAILY_RSL_REPORT',    'let': { 'date': '$DATE',date1:'$DATE_1' },    'pipeline': [      { '$match': {        '$expr': { '$eq': [ '$DATE', {$cond:[{$in:['$VENDOR',['HUAWEI','SIAE']]},'$$date1','$$date']} ] }      }}    ],    'as': 'arr'}},
+{$unwind:'$arr'},
+{$match:{'arr.VIEW':'RSL_WEEKLY','arr.NDB_DIFF':{$exists:true}}},
+{$project:{_id:0,VENDOR:'$arr.VENDOR',WEEK:'$unique_id',DATE:'$arr.DATE',LINK_AB:'$arr.LINK_AB',RPT_AREA:'$arr.RPT_AREA',REGION:'$arr.REGION',    NDB_DIFF:'$arr.NDB_DIFF',MAX_RECEIVED_SIGNAL_LEVEL:{$switch:{branches:[{case:{$eq:['$arr.VENDOR','HUAWEI']},then:  {$max:[{$cond:[{$eq:['$arr.SOURCE_NE_MAX_VALUE_OF_RECEIVE_POWER_OF_24_HOUR_PM','/']},null,{$toDouble:'$arr.SOURCE_NE_MAX_VALUE_OF_RECEIVE_POWER_OF_24_HOUR_PM'}]},{$cond:[{$eq:['$arr.SINK_NE_MAX_VALUE_OF_RECEIVE_POWER_OF_24_HOUR_PM','/']},null,{$toDouble:'$arr.SINK_NE_MAX_VALUE_OF_RECEIVE_POWER_OF_24_HOUR_PM'}]}]}},{case:{$eq:['$arr.VENDOR','ZTE']},then:'$arr.MAX_RECEIVED_SIGNAL_LEVEL(DBM)'},{case:{$eq:['$arr.VENDOR','SIAE']},then:'$arr.RSL_MAX'},        {case:{$eq:['$arr.VENDOR','NOKIA']},then:'$arr.ALU_MW_RSL_MAX'},        {case:{$eq:['$arr.VENDOR','ERICSSON']},then:'$arr.ERIC_MW_RSL_MAX'},        {case:{$eq:['$arr.VENDOR','NEC']},then:'$arr.NEC_MW_RSL_MAX'},        ],default:null}}}},
+{$group:{_id:{VENDOR:'$VENDOR',WEEK:'$WEEK',DATE:'$DATE',LINK_AB:'$LINK_AB',RPT_AREA:'$RPT_AREA',REGION:'$REGION'},    NDB_DIFF:{$max:{$cond:[{$or:[{$eq:[{$type:'$NDB_DIFF'},'string']},{$in:['$NDB_DIFF',[NaN,null]]}]},0,'$NDB_DIFF']}} , max_sig:{$max:{$cond:[{$eq:[{$type:'$MAX_RECEIVED_SIGNAL_LEVEL'},'string']},null,'$MAX_RECEIVED_SIGNAL_LEVEL']}} }},
+{$group:{_id:{VENDOR:'$_id.VENDOR',WEEK:'$_id.WEEK',LINK_AB:'$_id.LINK_AB',RPT_AREA:'$_id.RPT_AREA',REGION:'$_id.REGION'},        NDB_DIFF:{$max:'$NDB_DIFF'} , max_sig:{$push:'$max_sig'}     }},
+{$project:{_id:0,VENDOR:'$_id.VENDOR',WEEK:'$_id.WEEK',NDB_DIFF:1,LINK_AB:'$_id.LINK_AB',RPT_AREA:'$_id.RPT_AREA',REGION:'$_id.REGION',    max_sig:{              $map:                 {                   input: '$max_sig',                   as: 'max_sig',                   in: {$subtract:['$$max_sig','$NDB_DIFF']}                 }            }}},
+{$unwind:'$max_sig'},
+{$sort:{max_sig:-1}},
+{$group:{_id:{VENDOR:'$VENDOR',WEEK:'$WEEK',NDB_DIFF:'$NDB_DIFF',LINK_AB:'$LINK_AB',RPT_AREA:'$RPT_AREA',REGION:'$REGION'} , max_sig:{$push:'$max_sig'} }},
+{$project:{_id:0,VENDOR:'$_id.VENDOR',WEEK:'$_id.WEEK',NDB_DIFF:'$_id.NDB_DIFF',LINK_AB:'$_id.LINK_AB',RPT_AREA:'$_id.RPT_AREA',REGION:'$_id.REGION',max_sig:{$min:{$slice:['$max_sig',3]}}}},
+{$addFields:{'PERC_LINKS':{$switch:{branches:[        {case:{$or:[{$in:['$NDB_DIFF',[NaN,null,0]]},{$in:['$max_sig',[NaN,null,0]]} ,{$lte:['$max_sig',0]} ]},then:'OK'},        {case:{$or:[{$lt:['$max_sig',5]} ]},then:'<5dbm'},        {case:{$or:[{$lte:['$max_sig',10]} ]},then:'5 to 10 dbm'},        {case:{$or:[{$gt:['$max_sig',10]} ]},then:'>10dbm'}    ],default:''} }}},
+{$project:{ WEEK:{$toString:'$WEEK'},VENDOR:{$toString:'$VENDOR'},LINK_NAME:{$toString:'$LINK_NAME'}    ,NDB:'$NDB_DIFF',DIFF:'$max_sig',PERC_LINKS:{$toString:'$PERC_LINKS'}       ,AREA:{$toString:'$AREA'},REGION:{$toString:'$REGION'}    }}
+])
+
+
+
+

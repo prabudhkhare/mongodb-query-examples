@@ -1,0 +1,58 @@
+
+
+{
+
+collectionName:"MONTHLY_RAN_MW_COREALTION_UTILIZATION",
+aggregate:  [{$match:{  DATE:$P{month1}  ,   $expr:{$or:[{$and:[{$eq:["$VIEW","4G_RAN_MW_UTILISI_TEMP1"]},{$eq:["$PRESENT_IN_4G_RAN_MW_UTILISI","NO"]}]},{$eq:["$VIEW","4G_RAN_MW_UTILISI"]}]}  }}
+,
+
+
+{$project:{DATE:1,dummy:{$cond:[{$eq:  [ { $type : "$('UNNAMED:_2_LEVEL_0',_'SITEID')"}, 'missing'] },"false","true"]},
+AREA:{$cond:[{$eq:[{$ifNull:["$AREA","$('UNNAMED:_7_LEVEL_0',_'AREA')"]},NaN]},null,{$ifNull:["$AREA","$('UNNAMED:_7_LEVEL_0',_'AREA')"]}]},
+SITE_ID_A:{$cond:[{$eq:[{$ifNull:["$SITE_ID_A","$('UNNAMED:_2_LEVEL_0',_'SITEID')"]},NaN]},null,{$ifNull:["$SITE_ID_A","$('UNNAMED:_2_LEVEL_0',_'SITEID')"]}]},
+SITE_NAME_A:{$cond:[{$eq:[{$ifNull:["$SITE_NAME_A","$('UNNAMED:_3_LEVEL_0',_'SITENAME')"]},NaN]},null,{$ifNull:["$SITE_NAME_A","$('UNNAMED:_3_LEVEL_0',_'SITENAME')"]}]},SITE_ID_B:1,SITE_NAME_B:1,LINK_ID:1,
+   
+    Max_MW_Util:{$max:["$H0_H1_UTIL","$H0_H1_UTIL_OPP","$H1_H2_UTIL","$H1_H2_UTIL_OPP","$H2_H3_UTIL","$H2_H3_UTIL_OPP","$H3_H4_UTIL","$H3_H4_UTIL_OPP","$H4_H5_UTIL","$H4_H5_UTIL_OPP","$H5_H6_UTIL","$H5_H6_UTIL_OPP","$H6_H7_UTIL","$H6_H7_UTIL_OPP","$H7_H8_UTIL","$H7_H8_UTIL_OPP","$H8_H9_UTIL","$H8_H9_UTIL_OPP","$H9_H10_UTIL","$H9_H10_UTIL_OPP"]}
+}  },
+{$addFields:{SITE_ID_A:{$concat:["$DATE","_",{$toString:{$cond:[{$eq:["$SITE_ID_A","03CkR245"]},"03CKR245",{$cond:[{$in:["$SITE_ID_A",[NaN,null]]},"","$SITE_ID_A"]}]}}  ]}  }},
+{$lookup:{from:"MONTHLY_RAN_MW_COREALTION_UTILIZATION" , localField:"SITE_ID_A" , foreignField:"LOOKUP"  , as :"arr" }},
+{$addFields:{arr:{$arrayElemAt:[{
+            '$map': { 
+                'input': '$arr', 
+                'as': 'value', 
+                'in': { 
+                    'eut_target': "$$value.('UNNAMED:_11_LEVEL_0',_'MC_EUT_TARGET')", 
+                    'eut_min': "$$value.('EUT',_'MIN_EUT')"
+                }
+            }
+        },0]}}},
+        
+ {$addFields: {  Max_MW_Util:{$cond:[{$and:[{$in:["$Max_MW_Util",[null,NaN]]} , {$eq:["$dummy","false"]}]},0,"$Max_MW_Util"]} ,    Max_RAN_Util:{$cond:[{$eq:["$arr.eut_min",0]},null,{$multiply:[{$divide:["$arr.eut_target","$arr.eut_min"]},100]}]}}},
+ 
+ 
+{$addFields:{Max_RAN_MW_Util:{$cond:[{$and:[{$in:["$Max_RAN_Util",[NaN,null,""]]},{$in:["$Max_MW_Util",[NaN,null,""]]}]},null,{$cond:[{$and:[{$not:{$in:["$Max_MW_Util",[NaN,null]]}},{$lt:["$Max_MW_Util",{$toDecimal:80}]}]},"$Max_RAN_Util",{$max:["$Max_RAN_Util","$Max_MW_Util"]} ]}  ]}}},
+ 
+{$addFields:{Max_RAN_MW_Util:{$cond:[{$and:[{$in:["$Max_RAN_MW_Util",[NaN,null]]},{$eq:["$dummy","false"]}]},0,"$Max_RAN_MW_Util"  ]}}} ,
+ 
+ {$addFields:{FLAG_Thresshold:{$switch:{branches:[
+     {case: {$and:[{$lt:["$Max_RAN_MW_Util",{$toDecimal:40}]}]}    ,then: "0-40%"    },
+     {case: {$and:[{$gte:["$Max_RAN_MW_Util",{$toDecimal:40}]},{$lte:["$Max_RAN_MW_Util",{$toDecimal:75}]}]}    ,then:  "40-75%"   },
+     {case: {$and:[{$gt:["$Max_RAN_MW_Util",{$toDecimal:75}]}]}    ,then:">75%"     }
+     ],default:null}}}} 
+,{$addFields:{         FLAG_Thresshold :{$cond:[{$eq:["$Max_RAN_MW_Util",null]} ,null , "$FLAG_Thresshold" ]}   ,    Max_MW_Util:{$cond:[{$eq:["$Max_MW_Util",NaN]},null,"$Max_MW_Util"]},Max_RAN_Util:{$cond:[{$eq:["$Max_RAN_Util",NaN]},null,"$Max_RAN_Util"]},Max_RAN_MW_Util:{$cond:[{$eq:["$Max_RAN_MW_Util",NaN]},null,"$Max_RAN_MW_Util"]}    }}
+,{$match:{  AREA:{$ne:null} , FLAG_Thresshold :{$ne:null}    }},
+{$project:{_id:0,AREA:1,FLAG_Thresshold:1}},
+{$group:{_id:{AREA:"$AREA",FLAG_Thresshold:"$FLAG_Thresshold"} ,cnt:{$sum:1} }},
+{$project:{_id:0,AREA:"$_id.AREA",FLAG_Thresshold:"$_id.FLAG_Thresshold" , cnt:1}},
+{$group:{_id:"$FLAG_Thresshold",arr:{$push:"$$ROOT"} , sum:{$sum:"$cnt"}  }},
+{$project:{_id:0,arr:{$setUnion:["$arr",[{cnt:"$sum",AREA:"Grand Total",FLAG_Thresshold:"$_id"}]]}}},
+{$unwind:"$arr"},
+{$replaceWith:"$arr"}
+
+
+
+
+]
+
+
+}
